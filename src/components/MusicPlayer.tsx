@@ -11,6 +11,15 @@ const MusicPlayer: React.FC = () => {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  // Add the backend URL helper function
+  const getBackendUrl = () => {
+    if (window.location.hostname.includes('githubpreview.dev')) {
+      const codespaceName = window.location.hostname.split('-')[0];
+      return `https://${codespaceName}-3001.githubpreview.dev`;
+    }
+    return 'http://localhost:3001';
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;

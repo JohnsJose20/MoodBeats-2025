@@ -28,16 +28,28 @@ function App() {
     setDevices(devices);
   };
 
-  const handleLogin = async () => {
+  const getBackendUrl = () => {
+  // Check if we're in GitHub Codespaces
+  if (window.location.hostname.includes('githubpreview.dev')) {
+    const codespaceName = window.location.hostname.split('-')[0];
+    return `https://${codespaceName}-3001.githubpreview.dev`;
+  }
+  return 'http://localhost:3001';
+};
+
+ const handleLogin = async () => {
   try {
+    const backendUrl = getBackendUrl();
+    console.log('Using backend URL:', backendUrl);
+
     // Test connection first
-    const testResponse = await fetch('http://localhost:3001/');
+    const testResponse = await fetch(`${backendUrl}/`);
     if (!testResponse.ok) {
       throw new Error('Backend server is not responding');
     }
 
     // Now get the login URL
-    const response = await fetch('http://localhost:3001/login', {
+    const response = await fetch(`${backendUrl}/login`, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -73,7 +85,7 @@ function App() {
   }
 };
 
-  
+
 
   const handleLogout = () => {
     localStorage.removeItem('spotify_access_token');

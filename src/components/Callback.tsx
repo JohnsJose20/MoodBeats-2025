@@ -8,6 +8,15 @@ const Callback: React.FC = () => {
   const [message, setMessage] = useState('Processing login...');
   const navigate = useNavigate();
 
+  // Add the getBackendUrl function here
+  const getBackendUrl = () => {
+    if (window.location.hostname.includes('githubpreview.dev')) {
+      const codespaceName = window.location.hostname.split('-')[0];
+      return `https://${codespaceName}-3001.githubpreview.dev`;
+    }
+    return 'http://localhost:3001';
+  };
+
   useEffect(() => {
     const handleCallback = async () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -27,7 +36,8 @@ const Callback: React.FC = () => {
       }
 
       try {
-        const response = await fetch('http://localhost:3001/callback', {
+        // Update this fetch call to use getBackendUrl()
+        const response = await fetch(`${getBackendUrl()}/callback`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
