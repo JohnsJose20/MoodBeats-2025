@@ -1,60 +1,60 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Music, Play, Pause, Volume2, Heart, Share } from 'lucide-react';
-import { fetchTracksByTag, Track } from '../services/jamendoApi';
+import { Search, Music, Play, Pause, Volume2, Heart, Share, ExternalLink } from 'lucide-react';
+import { searchSpotify, playSpotifyTrack, Track } from '../services/spotifyApi';
 
 const MusicPlayer: React.FC = () => {
-  const [tag, setTag] = useState('');
+  const [query, setQuery] = useState('');
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!query.trim()) return;
+
+    const token = localStorage.getItem('spotify_access_token');
+    if (!token) {
+      setError('Please login with Spotify first');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const results = await fetchTracksByTag(tag);
+      const results = await searchSpotify(query, token);
       setTracks(results);
     } catch (err) {
       setError('Error fetching tracks. Please try again.');
+      console.error('Search error:', err);
     }
     setLoading(false);
   };
 
-  const playTrack = (track: Track) => {
-    // Stop current track if playing
-    if (audioElement) {
-      audioElement.pause();
-      setAudioElement(null);
+  const playTrack = async (track: Track) => {
+    const token = localStorage.getItem('spotify_access_token');
+    if (!token) {
+      setError('Please login with Spotify first');
+      return;
     }
 
     setCurrentTrack(track);
     setIsPlaying(true);
     
-    const audio = new Audio(track.audio);
-    audio.play();
-    setAudioElement(audio);
-    
-    audio.onended = () => {
+    try {
+      await playSpotifyTrack(track.uri, token);
+    } catch (err) {
+      console.error('Play error:', err);
+      setError('Failed to play track. Make sure Spotify is open on one of your devices.');
       setIsPlaying(false);
       setCurrentTrack(null);
-    };
+    }
   };
 
-  const togglePlayPause = () => {
-    if (audioElement) {
-      if (isPlaying) {
-        audioElement.pause();
-      } else {
-        audioElement.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
+  const openInSpotify = (uri: string) => {
+    window.open(`https://open.spotify.com/track/${uri.split(':')[2]}`, '_blank');
   };
 
   return (
@@ -69,8 +69,8 @@ const MusicPlayer: React.FC = () => {
       >
         <input
           type="text"
-          value={tag}
-          onChange={(e) => setTag(e.target.value)}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by mood or genre (e.g. rock, happy, chill)"
           className="w-full p-5 text-lg bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all duration-300 pr-16"
           required
@@ -108,14 +108,15 @@ const MusicPlayer: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-4">
-                <button className="text-white/70 hover:text-white transition-colors">
-                  <Heart className="w-5 h-5" />
-                </button>
-                <button className="text-white/70 hover:text-white transition-colors">
-                  <Share className="w-5 h-5" />
+                <button 
+                  onClick={() => openInSpotify(currentTrack.uri)}
+                  className="text-white/70 hover:text-white transition-colors"
+                  title="Open in Spotify"
+                >
+                  <ExternalLink className="w-5 h-5" />
                 </button>
                 <button 
-                  onClick={togglePlayPause}
+                  onClick={() => playTrack(currentTrack)}
                   className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
                 >
                   {isPlaying ? (
@@ -124,12 +125,6 @@ const MusicPlayer: React.FC = () => {
                     <Play className="w-6 h-6 text-white ml-1" />
                   )}
                 </button>
-                <div className="flex items-center space-x-2 text-white/70">
-                  <Volume2 className="w-4 h-4" />
-                  <div className="w-20 h-1 bg-white/30 rounded-full">
-                    <div className="h-full bg-white rounded-full w-3/4"></div>
-                  </div>
-                </div>
               </div>
             </div>
           </motion.div>
@@ -193,16 +188,25 @@ const MusicPlayer: React.FC = () => {
                 />
                 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                  <button 
-                    onClick={() => playTrack(track)}
-                    className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md hover:bg-white/30 transition-colors ml-auto"
-                  >
-                    {currentTrack?.id === track.id && isPlaying ? (
-                      <Pause className="w-5 h-5 text-white" />
-                    ) : (
-                      <Play className="w-5 h-5 text-white ml-1" />
-                    )}
-                  </button>
+                  <div className="flex space-x-2 ml-auto">
+                    <button 
+                      onClick={() => openInSpotify(track.uri)}
+                      className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md hover:bg-white/30 transition-colors"
+                      title="Open in Spotify"
+                    >
+                      <ExternalLink className="w-4 h-4 text-white" />
+                    </button>
+                    <button 
+                      onClick={() => playTrack(track)}
+                      className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md hover:bg-white/30 transition-colors"
+                    >
+                      {currentTrack?.id === track.id && isPlaying ? (
+                        <Pause className="w-4 h-4 text-white" />
+                      ) : (
+                        <Play className="w-4 h-4 text-white ml-0.5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
               
@@ -213,15 +217,18 @@ const MusicPlayer: React.FC = () => {
                 
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-xs px-2 py-1 bg-white/10 rounded-full text-blue-200">
-                    {tag}
+                    30s preview
                   </span>
                   
                   <div className="flex space-x-2">
                     <button className="text-white/50 hover:text-white transition-colors">
                       <Heart className="w-4 h-4" />
                     </button>
-                    <button className="text-white/50 hover:text-white transition-colors">
-                      <Share className="w-4 h-4" />
+                    <button 
+                      onClick={() => openInSpotify(track.uri)}
+                      className="text-white/50 hover:text-white transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

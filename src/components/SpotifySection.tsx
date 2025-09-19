@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Music, ExternalLink, Heart, Users } from 'lucide-react';
+import { Music, ExternalLink, Heart, Users, Play } from 'lucide-react';
 
 const playlists = [
   {
@@ -27,6 +27,14 @@ const playlists = [
 ];
 
 const SpotifySection: React.FC = () => {
+  const handleConnectSpotify = () => {
+    // This would trigger the Spotify login flow
+    const loginButton = document.querySelector('[onClick*="handleLogin"]') as HTMLElement;
+    if (loginButton) {
+      loginButton.click();
+    }
+  };
+
   return (
     <section className="py-24 px-6 relative">
       <div className="max-w-7xl mx-auto">
@@ -45,122 +53,85 @@ const SpotifySection: React.FC = () => {
             >
               <Music className="w-8 h-8 text-white" />
             </motion.div>
-            <h2 className="text-5xl md:text-6xl font-bold text-white">
-              Powered by Spotify
+            <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+              Spotify Integration
             </h2>
           </div>
-          
-          <p className="text-xl text-blue-200 max-w-3xl mx-auto">
-            Access millions of songs with seamless Spotify integration. 
-            Your mood becomes your DJ with professionally curated playlists.
+          <p className="text-xl text-blue-200 max-w-3xl mx-auto mb-8">
+            Connect your Spotify account to discover personalized music recommendations based on your mood
           </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleConnectSpotify}
+            className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-2 mx-auto"
+          >
+            <span>Connect with Spotify</span>
+            <ExternalLink className="w-5 h-5" />
+          </motion.button>
         </motion.div>
 
-        {/* Spotify Integration Features */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {[
-            { icon: Music, title: 'Millions of Songs', desc: 'Access to Spotify\'s entire music library' },
-            { icon: Heart, title: 'Curated Playlists', desc: 'Handpicked songs for every emotion' },
-            { icon: Users, title: 'Social Discovery', desc: 'See what others with similar moods are playing' }
-          ].map((feature, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: i * 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -5 }}
-              className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 text-center"
-            >
-              <div className={`w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4`}>
-                <feature.icon className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-              <p className="text-blue-200">{feature.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Sample Playlists */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
           viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8"
         >
-          <h3 className="text-3xl font-bold text-white text-center mb-12">
-            Sample Mood Playlists
-          </h3>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            {playlists.map((playlist, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.05, y: -10 }}
-                className="group cursor-pointer"
-              >
-                <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 shadow-lg">
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={playlist.image}
-                      alt={playlist.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className={`absolute inset-0 bg-gradient-to-t ${playlist.color} opacity-60`} />
-                    
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                      className="absolute inset-0 flex items-center justify-center bg-black/20"
-                    >
-                      <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
-                        <Music className="w-8 h-8 text-gray-800 ml-1" />
-                      </div>
-                    </motion.div>
+          {playlists.map((playlist, index) => (
+            <motion.div
+              key={playlist.name}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="group bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 hover:border-white/40 transition-all duration-300"
+            >
+              <div className="relative">
+                <img
+                  src={playlist.image}
+                  alt={playlist.name}
+                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute bottom-4 left-4">
+                  <span className={`inline-block px-3 py-1 text-sm font-semibold rounded-full bg-gradient-to-r ${playlist.color} text-white`}>
+                    {playlist.mood}
+                  </span>
+                </div>
+                <div className="absolute top-4 right-4">
+                  <button className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center hover:bg-green-600 transition-colors">
+                    <Play className="w-5 h-5 text-white ml-0.5" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <h3 className="text-xl font-semibold text-white mb-2">{playlist.name}</h3>
+                <div className="flex items-center space-x-4 text-blue-200">
+                  <div className="flex items-center space-x-1">
+                    <Music className="w-4 h-4" />
+                    <span>{playlist.songs} songs</span>
                   </div>
-                  
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-xl font-bold text-white">{playlist.name}</h4>
-                      <ExternalLink className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
-                    </div>
-                    <p className="text-purple-200 text-sm mb-3">Mood: {playlist.mood}</p>
-                    <p className="text-blue-200">{playlist.songs} songs</p>
+                  <div className="flex items-center space-x-1">
+                    <Users className="w-4 h-4" />
+                    <span>12.4k likes</span>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          viewport={{ once: true }}
-          className="mt-16 text-center"
-        >
-          <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 p-8 rounded-2xl border border-purple-500/30 backdrop-blur-md">
-            <div className="grid grid-cols-3 gap-8">
-              <div>
-                <p className="text-3xl font-bold text-white">50M+</p>
-                <p className="text-purple-200">Songs Available</p>
+                
+                <div className="mt-6 flex items-center justify-between">
+                  <button className="flex items-center space-x-2 text-green-400 hover:text-green-300 transition-colors">
+                    <Heart className="w-5 h-5" />
+                    <span>Save</span>
+                  </button>
+                  <button className="flex items-center space-x-2 text-white/70 hover:text-white transition-colors">
+                    <span>Play</span>
+                    <Play className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <div>
-                <p className="text-3xl font-bold text-white">99%</p>
-                <p className="text-purple-200">Mood Accuracy</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-white">{"< 2s"}</p>
-                <p className="text-purple-200">Response Time</p>
-              </div>
-            </div>
-          </div>
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>
